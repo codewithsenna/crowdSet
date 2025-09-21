@@ -14,6 +14,7 @@ interface Concert {
   city: string
   date: string
   status: string
+  image: string
 }
 
 export default function FeaturedConcerts() {
@@ -57,7 +58,14 @@ export default function FeaturedConcerts() {
                 <Card className="group overflow-hidden border-border/50 hover:border-primary/50 transition-all duration-300 cursor-pointer">
                   <div className="relative aspect-video overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-accent/10"></div>
-                    <div className="absolute inset-0 bg-[url('/concert-stage-lights-crowd-silhouette.png')] bg-cover bg-center opacity-30"></div>
+{concert.image ? (
+  <div
+    className="absolute inset-0 bg-cover bg-center opacity-70"
+    style={{ backgroundImage: `url(${concert.image})` }}
+  />
+) : (
+  <div className="absolute inset-0 bg-[url('/concert-stage-lights-crowd-silhouette.png')] bg-cover bg-center opacity-30"></div>
+)}
                     <div className="absolute top-4 left-4">
                       <Badge variant={concert.status === "Live Now" ? "default" : "secondary"}>
                         {concert.status}

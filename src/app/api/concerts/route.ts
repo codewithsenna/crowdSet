@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { getSpotifyToken, getTrackDurationMs } from "@/services/spotifyService"
+import { getSpotifyToken, getTrackDurationMs, getArtistImage } from "@/services/spotifyService"
 
 function formatDate(dateStr: string): string {
   // Convert DD-MM-YYYY → "May 23, 2025"
@@ -17,7 +17,6 @@ async function mapSetlistToConcert(s: any, spotifyToken?: string) {
   const songs = s.sets?.set?.[0]?.song || []
   let totalDurationMs = 0
 
-  // If Spotify token is available, try to fetch durations
   if (spotifyToken) {
     for (const song of songs) {
       try {
@@ -30,12 +29,17 @@ async function mapSetlistToConcert(s: any, spotifyToken?: string) {
     }
   }
 
-  // Convert ms → h/m string
   let duration = "N/A"
   if (totalDurationMs > 0) {
     const hours = Math.floor(totalDurationMs / (1000 * 60 * 60))
     const minutes = Math.floor((totalDurationMs % (1000 * 60 * 60)) / (1000 * 60))
     duration = hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`
+  }
+
+  // 🎤 Fetch artist image from Spotify
+  let artistImage: string | null = null
+  if (spotifyToken && s.artist?.name) {
+    artistImage = await getArtistImage(s.artist.name, spotifyToken)
   }
 
   return {
@@ -47,10 +51,12 @@ async function mapSetlistToConcert(s: any, spotifyToken?: string) {
     date: formatDate(s.eventDate),
     url: s.url,
     totalSongs: songs.length,
-    duration,          
+    duration,
     status: "Upcoming",
+    image: artistImage || "/concert-stage-lights-crowd-silhouette.png", // fallback
   }
 }
+
 
 export async function GET() {
   try {
