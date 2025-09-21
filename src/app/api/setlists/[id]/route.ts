@@ -20,6 +20,6 @@ export async function GET(
     )
   }
 
-  const setlist = await res.json()
+const setlist: unknown = await res.json()
   return NextResponse.json(setlist)
 }
