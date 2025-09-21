@@ -1,32 +1,26 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { Concert } from "@/types/concert.types"
+import { getConcerts } from "@/services/setlistService"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { MapPin, Calendar, Users, Play, Loader2 } from "lucide-react"
 import Link from "next/link"
-
-interface Concert {
-  id: string
-  artist: string
-  venue: string
-  city: string
-  date: string
-  status: string
-  image: string
-}
+import { Calendar, Loader2, MapPin, Play, Users } from "lucide-react"
 
 export default function FeaturedConcerts() {
   const [concerts, setConcerts] = useState<Concert[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    async function load() {
+    const load = async () => {
       try {
-        const res = await fetch("/api/concerts")
-        const data = await res.json()
+        const data = await getConcerts()
         setConcerts(data)
+      } catch (err: any) {
+        setError(err.message)
       } finally {
         setLoading(false)
       }
@@ -51,6 +45,8 @@ export default function FeaturedConcerts() {
             <Loader2 className="h-10 w-10 animate-spin text-primary" />
             <span className="ml-3 text-muted-foreground">Loading concerts...</span>
           </div>
+        ) : error ? (
+          <p className="text-red-500 text-center">{error}</p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {concerts.map((concert) => (
@@ -58,14 +54,14 @@ export default function FeaturedConcerts() {
                 <Card className="group overflow-hidden border-border/50 hover:border-primary/50 transition-all duration-300 cursor-pointer">
                   <div className="relative aspect-video overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-accent/10"></div>
-{concert.image ? (
-  <div
-    className="absolute inset-0 bg-cover bg-center opacity-70"
-    style={{ backgroundImage: `url(${concert.image})` }}
-  />
-) : (
-  <div className="absolute inset-0 bg-[url('/concert-stage-lights-crowd-silhouette.png')] bg-cover bg-center opacity-30"></div>
-)}
+                    {concert.image ? (
+                      <div
+                        className="absolute inset-0 bg-cover bg-center opacity-70"
+                        style={{ backgroundImage: `url(${concert.image})` }}
+                      />
+                    ) : (
+                      <div className="absolute inset-0 bg-[url('/concert-stage-lights-crowd-silhouette.png')] bg-cover bg-center opacity-30"></div>
+                    )}
                     <div className="absolute top-4 left-4">
                       <Badge variant={concert.status === "Live Now" ? "default" : "secondary"}>
                         {concert.status}
