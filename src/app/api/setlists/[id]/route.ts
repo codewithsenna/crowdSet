@@ -12,7 +12,6 @@ export async function GET(
       "x-api-key": process.env.SETLIST_FM_API_KEY as string,
     },
   })
-
   if (!res.ok) {
     return NextResponse.json(
       { error: `Failed to fetch setlist ${res.status}` },
