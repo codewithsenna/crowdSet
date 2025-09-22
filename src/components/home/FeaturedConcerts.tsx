@@ -60,10 +60,10 @@ export default function FeaturedConcerts() {
     <section className="py-24">
       <div className="container mx-auto px-4">
         <div className="mb-16">
-          <h2 className="text-4xl md:text-6xl font-black text-foreground mb-4">
-            FEATURED <span className="block text-primary">CONCERTS</span>
+          <h2 className="text-4xl font-bold tracking-tight">
+            Featured <span className="text-primary">Concerts</span>
           </h2>
-          <p className="text-xl text-muted-foreground max-w-2xl">
+          <p className="mt-2 text-muted-foreground">
             Discover the latest performances and upcoming shows from your favorite artists.
           </p>
         </div>
@@ -75,13 +75,15 @@ export default function FeaturedConcerts() {
                 type="text"
                 placeholder="Search by city or artist..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 bg-background border-border/50 focus:border-primary/50"
+                onChange={(e) => {
+                  const value = e.target.value
+                  setSearchQuery(value.trim() === "" ? "Toronto" : value)
+                }} className="pl-10 bg-background border-border/50 focus:border-primary/50"
               />
             </span>
           </div>
         </div>
-        
+
         {loading ? (
           <div className="flex justify-center items-center py-12">
             <Loader2 className="h-10 w-10 animate-spin text-primary" />
