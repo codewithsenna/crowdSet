@@ -24,16 +24,10 @@ export default function Hero() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4">
-            {/* Explore Concerts button (could scroll to featured section) */}
-            <Button size="lg" className="text-lg px-8 py-6 group">
-              Explore Concerts
-              <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-            </Button>
-
-            {/* ✅ This goes to app/concerts/page.tsx (ConcertPage) */}
             <Link href="/concerts">
-              <Button size="lg" variant="outline" className="text-lg px-8 py-6 bg-transparent">
-                View Setlists
+              <Button size="lg" className="text-lg px-8 py-6 group">
+                Explore Concerts
+                <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
           </div>

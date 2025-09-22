@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 import { getSpotifyToken, getTrackDurationMs, getArtistImage } from "@/services/spotifyService"
 
 function formatDate(dateStr: string): string {
@@ -58,18 +58,26 @@ async function mapSetlistToConcert(s: any, spotifyToken?: string) {
 }
 
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
-    // Try to get Spotify token
+    const { searchParams } = new URL(req.url)
+    const q = searchParams.get("q")
+
+    if (!q) {
+      return NextResponse.json([])
+    }
+
+    // Spotify token
     let spotifyToken: string | undefined
     try {
       spotifyToken = await getSpotifyToken()
-    } catch (err) {
-      console.warn("⚠️ Spotify token fetch failed, falling back to no duration")
+    } catch {
+      console.warn("⚠️ Spotify token fetch failed")
     }
 
-    const res = await fetch(
-      "https://api.setlist.fm/rest/1.0/search/setlists?artistName=Metallica",
+    // 🔍 Try city search first
+    let res = await fetch(
+      `https://api.setlist.fm/rest/1.0/search/setlists?cityName=${encodeURIComponent(q)}`,
       {
         headers: {
           Accept: "application/json",
@@ -78,16 +86,27 @@ export async function GET() {
       }
     )
 
-    if (!res.ok) {
-      console.error("Setlist.fm error:", res.status)
-      return NextResponse.json([])
+    let data = await res.json()
+    let concerts = data.setlist || []
+
+    // If no concerts found by city → try artist search
+    if (!concerts.length) {
+      res = await fetch(
+        `https://api.setlist.fm/rest/1.0/search/setlists?artistName=${encodeURIComponent(q)}`,
+        {
+          headers: {
+            Accept: "application/json",
+            "x-api-key": process.env.SETLIST_FM_API_KEY as string,
+          },
+        }
+      )
+      data = await res.json()
+      concerts = data.setlist || []
     }
 
-    const data = await res.json()
-
-    // Map + flatten with Spotify enrichment if available
-    const concerts = await Promise.all(
-      (data.setlist || []).map((s: any) =>
+    // Map results
+    const mapped = await Promise.all(
+      concerts.map((s: any) =>
         mapSetlistToConcert(s, spotifyToken).catch((err) => {
           console.error("Mapping failed:", s.id, err)
           return null
@@ -95,9 +114,13 @@ export async function GET() {
       )
     )
 
-    return NextResponse.json(concerts.filter(Boolean))
+    return NextResponse.json(mapped.filter(Boolean))
   } catch (err) {
     console.error("API route failed:", err)
     return NextResponse.json([])
   }
 }
+
+
+
+ 

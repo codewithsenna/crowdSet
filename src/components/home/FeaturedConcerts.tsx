@@ -7,17 +7,42 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { Calendar, Loader2, MapPin, Play, Users } from "lucide-react"
+import { Calendar, Loader2, MapPin, Play, Search, Users } from "lucide-react"
+import { Input } from "../ui/input"
 
 export default function FeaturedConcerts() {
   const [concerts, setConcerts] = useState<Concert[]>([])
+  const [searchQuery, setSearchQuery] = useState("")
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+
+  // 🌍 Auto-detect city from IP
   useEffect(() => {
-    const load = async () => {
+    const fetchCity = async () => {
       try {
-        const data = await getConcerts()
+        const res = await fetch("https://ipapi.co/json/")
+        const data = await res.json()
+        if (data.city) {
+          setSearchQuery(data.city) // set as default search
+        } else {
+          setSearchQuery("Toronto") // fallback
+        }
+      } catch (err) {
+        console.error("IP location fetch failed:", err)
+        setSearchQuery("Toronto") // fallback
+      }
+    }
+
+    fetchCity()
+  }, [])
+
+  useEffect(() => {
+    if (!searchQuery) return
+    const load = async () => {
+      setLoading(true)
+      try {
+        const data = await getConcerts(searchQuery)
         setConcerts(data)
       } catch (err: any) {
         setError(err.message)
@@ -25,8 +50,11 @@ export default function FeaturedConcerts() {
         setLoading(false)
       }
     }
-    load()
-  }, [])
+
+    const timeout = setTimeout(load, 500)
+    return () => clearTimeout(timeout)
+  }, [searchQuery])
+
 
   return (
     <section className="py-24">
@@ -39,7 +67,21 @@ export default function FeaturedConcerts() {
             Discover the latest performances and upcoming shows from your favorite artists.
           </p>
         </div>
-
+        <div className="mb-8">
+          <div className="flex items-center">
+            <Search className="h-5 w-5 text-muted-foreground" />
+            <span className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+              <Input
+                type="text"
+                placeholder="Search by city or artist..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 bg-background border-border/50 focus:border-primary/50"
+              />
+            </span>
+          </div>
+        </div>
+        
         {loading ? (
           <div className="flex justify-center items-center py-12">
             <Loader2 className="h-10 w-10 animate-spin text-primary" />
