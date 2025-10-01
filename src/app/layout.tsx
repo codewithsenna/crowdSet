@@ -1,5 +1,6 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import PageLoader from "@/components/ui/PageLoader";
 
@@ -23,13 +24,14 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1, // optional (prevents zoom)
 };
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return ( 
-     <html lang="en">
+  return (
+    <html lang="en">
       <head>
         <Script
           async
@@ -43,6 +45,5 @@ export default function RootLayout({
         {children}
       </body>
     </html>
-
   );
 }
